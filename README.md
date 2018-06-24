@@ -72,4 +72,4 @@ $
 ## License
 
 This is under the MIT License.
-See [`lisp.cs L1388-L1409`](lisp.ts#L1388-L1409).
+See [`lisp.cs L1388-L1409`](lisp.cs#L1388-L1409).
