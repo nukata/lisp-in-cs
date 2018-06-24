@@ -18,6 +18,8 @@ Common Lisp (and also in Emacs Lisp).
 Examples are found in the [`examples`](examples) folder copied from
 [lisp-in-dart/examples](http://github.com/nukata/lisp-in-dart/tree/master/examples).
 
+See [IMPLEMENTATION-NOTES.md](IMPLEMENTATION-NOTES.md) for the implementation.
+
 
 ## How to run
 
