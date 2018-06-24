@@ -5,10 +5,9 @@
 ## 1. Overview
 
 The Lisp implementation of [lisp.cs](lisp.cs) is a translation of lisp.dart 
-at [lisp-in-dart](https://github.com/nukata/lisp-in-dart).
+at [lisp-in-dart](https://github.com/nukata/lisp-in-dart) into C# 7.
 For simplicity, lisp.cs restricts numbers in Lisp to `double` only.
 Below is an example of running lisp.cs with Mono 5.12 on macOS 10.11.
-If you have a C# 7 compiler, you can try Lisp right away.
 
 ```
 $ csc lisp.cs
@@ -128,7 +127,8 @@ The macro `let` is defined in the prelude as follows.
 
 Being _partially hygienic_, macros can avoid variable captures,
 provided that you always use the result of `(gensym)` for any symbol
-newly introduced to the expansion result, for example,
+newly introduced to the expansion result.
+For example:
 
 ```Lisp
 (defmacro while (test &rest body)
@@ -142,8 +142,9 @@ See [lisp-in-dart/IMPLEMENTATION-NOTES §5](https://github.com/nukata/lisp-in-da
 ----------------------------------------
 
 **Note:**
-I believe the partially hygienic nature delivers the ideal behavior of macros.
-You can also define
+I believe the partially hygienic nature delivers an ideally useful behavior
+of macros.
+You can define
 [anaphoric macros](http://www.asahi-net.or.jp/~kc7k-nd/onlispjhtml/anaphoricMacros.html)
 (Japanese) by introducing a symbol (`it` in the following example) to the 
 expansion result intentionally without using `(gensym)`.
@@ -285,8 +286,8 @@ you will get `CondSym`, an instance of the `Keyword` class.
 <a name="3"></a>
 ## 3. Implementations of Lisp functions
 
-The core of Lisp interpreter is represented by the `Interp` class.
-It has a map for global variables and a standard out.
+The `Interp` class implements the core of the Lisp interpreter.
+It has a map for global variables and standard out for built-in functions.
 
 ```CS
     /// <summary>Core of the Lisp interpreter</summary>
@@ -299,8 +300,7 @@ It has a map for global variables and a standard out.
         public TextWriter COut { get; set; } = Console.Out;
 ```
 
-Each built-in Lisp function is defined with the utility method of 
-`Interp` below.
+Each built-in function is defined with the `Def` method below.
 The `carity` argument takes the arity of the function to be defined.
 If the function has `&rest`, the `carity` 
 takes `-(`_number of fixed arguments_ ` + 1)`.
