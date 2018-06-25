@@ -100,7 +100,7 @@ in the famous [Caml Light](http://caml.inria.fr/caml-light/).
 
 ```
 > *version*
-(1.21 "C# 7" "Nukata Lisp Light")
+(1.22 "C# 7" "Nukata Lisp Light")
 > 
 ```
 
