@@ -1,4 +1,4 @@
-// H29.3/1 - H30.6/24 by SUZUKI Hisao
+// H29.3/1 - H30.6/25 by SUZUKI Hisao
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 // doc: mdoc update -i lisp.xml -o xml lisp.exe; mdoc export-html -o html xml
 
 [assembly: AssemblyProduct("Nukata Lisp Light")]
-[assembly: AssemblyVersion("1.2.1.*")]
+[assembly: AssemblyVersion("1.2.2.*")]
 [assembly: AssemblyTitle("A Lisp interpreter in C# 7")]
 [assembly: AssemblyCopyright("© 2017 Oki Software Co., Ltd.; " + 
                              "© 2018 SUZUKI Hisao [MIT License]")]
@@ -1155,30 +1155,34 @@ public static class NukataLisp {
 
     //------------------------------------------------------------------
 
-    /// <summary>Run REPL (Read-Eval-Print Loop).</summary>
-    public static async Task Run(Interp interp, TextReader input) {
-        bool interactive = (input == null);
-        if (interactive)
+    /// <summary>Run Read-Eval-Print Loop.</summary>
+    /// <remarks>Exceptions are handled here and not thrown.</remarks>
+    public static async Task RunREPL(Interp interp, TextReader input = null) {
+        if (input == null)
             input = Console.In;
         var reader = new Reader(input);
         for (;;) {
-            if (interactive) {
-                Console.Write("> ");
-                try {
-                    var sExp = await reader.Read();
-                    if (sExp == Reader.EOF)
-                        return;
-                    var x = interp.Eval(sExp, null);
-                    Console.WriteLine(Str(x));
-                } catch (Exception ex) {
-                    Console.WriteLine(ex);
-                }
-            } else {
+            interp.COut.Write("> ");
+            try {
                 var sExp = await reader.Read();
                 if (sExp == Reader.EOF)
                     return;
-                interp.Eval(sExp, null);
+                var x = interp.Eval(sExp, null);
+                interp.COut.WriteLine(Str(x));
+            } catch (Exception ex) {
+                interp.COut.WriteLine(ex);
             }
+        }
+    }
+
+    /// <summary>Run Read-Eval Loop.</summary>
+    public static async Task Run(Interp interp, TextReader input) {
+        var reader = new Reader(input);
+        for (;;) {
+            var sExp = await reader.Read();
+            if (sExp == Reader.EOF)
+                return;
+            interp.Eval(sExp, null);
         }
     }
 
@@ -1196,8 +1200,8 @@ public static class NukataLisp {
         }
         foreach (var fileName in args) {
             if (fileName == "-") {
-                Run(interp, null).Wait();
-                Console.WriteLine("Goodbye");
+                RunREPL(interp).Wait();
+                interp.COut.WriteLine("Goodbye");
             } else {
                 var input = new StreamReader(fileName);
                 Run(interp, input).Wait();
