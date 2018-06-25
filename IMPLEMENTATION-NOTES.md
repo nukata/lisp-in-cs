@@ -142,12 +142,11 @@ See [lisp-in-dart/IMPLEMENTATION-NOTES §5](https://github.com/nukata/lisp-in-da
 ----------------------------------------
 
 **Note:**
-I believe the partially hygienic nature delivers an ideally useful behavior
-of macros.
-You can define
-[anaphoric macros](http://www.asahi-net.or.jp/~kc7k-nd/onlispjhtml/anaphoricMacros.html)
-(Japanese) by introducing a symbol (`it` in the following example) to the 
-expansion result intentionally without using `(gensym)`.
+I believe partially hygienic macros have ideal usefulness.
+If you like, you can define
+[anaphoric macros (Japanese page)](http://www.asahi-net.or.jp/~kc7k-nd/onlispjhtml/anaphoricMacros.html)
+by introducing a symbol (`it` in the following example) to the 
+expansion result intentionally without `(gensym)`.
 
 ```
 > (defmacro aif (test then else)
@@ -175,7 +174,7 @@ They are all treated as `object` uniformly.
 
 | Lisp Expression                     | Internal Representation                |
 |:------------------------------------|:---------------------------------------|
-| numbers `1`, `2.3`                  | `doube`                                |
+| numbers `1`, `2.3`                  | `double`                               |
 | strings `"abc"`, `"hello!\n"`       | `string`                               |
 | `t`                                 | `Sym` (user-defined)                   |
 | `nil`                               | `null`                                 |
