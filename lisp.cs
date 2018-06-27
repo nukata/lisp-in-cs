@@ -1,4 +1,4 @@
-// H29.3/1 - H30.6/25 by SUZUKI Hisao
+// H29.3/1 - H30.6/27 by SUZUKI Hisao
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1176,13 +1176,14 @@ public static class NukataLisp {
     }
 
     /// <summary>Run Read-Eval Loop.</summary>
-    public static async Task Run(Interp interp, TextReader input) {
+    public static async Task<object> Run(Interp interp, TextReader input) {
         var reader = new Reader(input);
+        object lastResult = Reader.EOF;
         for (;;) {
             var sExp = await reader.Read();
             if (sExp == Reader.EOF)
-                return;
-            interp.Eval(sExp, null);
+                return lastResult;
+            lastResult = interp.Eval(sExp, null);
         }
     }
 
