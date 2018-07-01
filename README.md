@@ -101,7 +101,7 @@ I used MacBook Pro (15-inch, 2016), 2.6GHz Core i7, 16GB 2133MHz LPDDR3, macOS H
 
 I am sorry to say that the performance of this Lisp (lisp-in-cs) is rather mediocre.
 Note that l2lisp-in-java, lisp-in-dart, lisp-in-typescript, lisp-in-cs and lisp-in-go are all written in the same way; l2lisp-in-python is a little old-fashioned.
-*Roughly speaking*, their speeds shown above reflect their respective implementation languages: Java, Dart, TypeScript, C# and Go (and Python).
+*Roughly speaking*, their speeds shown above reflect those of their respective implementation languages: Java, Dart, TypeScript, C# and Go (and Python).
 
 
 ## License
