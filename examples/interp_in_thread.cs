@@ -5,14 +5,14 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-// csc /o /t:library ../lisp.cs
-// csc interp_in_thread.cs /r:lisp.dll
+// csc -o -t:library -r:System.Numerics.dll ../lisp.cs ../arith.cs 
+// csc -r:lisp.dll interp_in_thread.cs
 // mono interp_in_thread.exe
 
 // Expected output:
-// > (1 . 2)
-// Summer
-// > Summer
+// => (1 . 2)
+// Reiwa
+// => Reiwa
 
 public static class ThreadTest {
 
@@ -51,7 +51,7 @@ public static class ThreadTest {
         new Thread(() => RESLoop(so, queue)).Start();
         foreach (string sExpression in new string[]{
                 "(cons 1 2)",
-                "(print 'Summer)",
+                "(print 'Reiwa)",
                 EndSentinel
             }) {
             queue.Add(sExpression);
@@ -62,7 +62,7 @@ public static class ThreadTest {
                 } else if (x is char ch) {
                     Console.Write(ch);
                 } else {
-                    Console.WriteLine("> {0}", x);
+                    Console.WriteLine("=> {0}", x);
                 }
             }
         }

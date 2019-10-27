@@ -6,12 +6,11 @@
 
 The Lisp implementation of [lisp.cs](lisp.cs) is a translation of lisp.dart 
 at [lisp-in-dart](https://github.com/nukata/lisp-in-dart) into C# 7.
-For simplicity, lisp.cs restricts numbers in Lisp to `double` only.
-Below is an example of running lisp.cs with Mono 5.12 on macOS 10.11.
+Below is an example of running lisp.cs with Mono 6.4.0 on macOS 10.14.6.
 
 ```
-$ csc lisp.cs
-Microsoft (R) Visual C# Compiler version 2.6.0.62309 (d3f6b8e7)
+$ csc -r:System.Numerics.dll arith.cs lisp.cs
+Microsoft (R) Visual C# Compiler version 3.3.1-beta4-19462-11 (66a912c9)
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 $ mono lisp.exe
@@ -33,6 +32,8 @@ null = identity print consp not cdddr cddar cdadr cdaar caddr cadar caadr caaar
 cddr cdar cadr caar defun defmacro *version* dump exit apply symbol-name intern 
 make-symbol gensym *gensym-counter* terpri princ prin1 truncate / - * + mod % < 
 eql numberp stringp length rplacd rplaca list eq atom cons cdr car t)
+> *version*
+(2.0 "C# 7" "Nukata Lisp")
 > let
 #<macro:-2:((#<lambda:2:((progn (setq #0:0:vars #<lambda:1:((cond (#0:0:x (cons 
 (cond ((atom (car #0:0:x)) (car #0:0:x)) (t (caar #0:0:x))) (#1:0:vars (cdr #0:0
@@ -64,7 +65,7 @@ Some features of lisp.cs and lisp.dart are
   since they are not variables.
 
 - `*version*` is a three-element list: 
-  the (internal) version number, the implementing language, 
+  the version number, the implementing language, 
   and the name of implementation.
 
 - (`macro` _args_ _body_) is a special form that evaluates to a sort of
@@ -85,24 +86,6 @@ Some features of lisp.cs and lisp.dart are
 - Macros are _partially hygienic_.
   Free symbols within a macro expression will not be captured when the
   expression is applied (i.e., when the macro is expanded).
-
-
-A restriction of lisp.cs compared to lisp.dart is
-
-
-- All numbers are represented by double precision floating point numbers
-  (`double` in C#).
-
-
-That is why I call it _Light_.
-Maybe I should call it _Lite_, but I followed the usage of _Light_
-in the famous [Caml Light](http://caml.inria.fr/caml-light/).
-
-```
-> *version*
-(1.22 "C# 7" "Nukata Lisp Light")
-> 
-```
 
 
 The macro `let` is defined in the prelude as follows.
@@ -174,7 +157,7 @@ They are all treated as `object` uniformly.
 
 | Lisp Expression                     | Internal Representation                |
 |:------------------------------------|:---------------------------------------|
-| numbers `1`, `2.3`                  | `double`                               |
+| numbers `1`, `2.3`                  | `int`, `double`, `BigInteger`          |
 | strings `"abc"`, `"hello!\n"`       | `string`                               |
 | `t`                                 | `Sym` (user-defined)                   |
 | `nil`                               | `null`                                 |

@@ -1,4 +1,4 @@
-// H29.3/1 - H30.6/27 by SUZUKI Hisao
+// H29.03.01/R01.10.27 by SUZUKI Hisao
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,12 +8,13 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using LittleArith;
 
-// lisp.exe: csc /doc:lisp.xml /o lisp.cs
+// lisp.exe: csc -doc:lisp.xml -o -r:System.Numerics.dll lisp.cs arith.cs
 // doc: mdoc update -i lisp.xml -o xml lisp.exe; mdoc export-html -o html xml
 
-[assembly: AssemblyProduct("Nukata Lisp Light")]
-[assembly: AssemblyVersion("1.2.2.*")]
+[assembly: AssemblyProduct("Nukata Lisp")]
+[assembly: AssemblyVersion("2.0.0.*")]
 [assembly: AssemblyTitle("A Lisp interpreter in C# 7")]
 [assembly: AssemblyCopyright("© 2017 Oki Software Co., Ltd.; " + 
                              "© 2018 SUZUKI Hisao [MIT License]")]
@@ -22,8 +23,7 @@ using System.Threading.Tasks;
 ///  A Lisp interpreter written in C# 7
 /// </summary><remarks>
 ///  This is ported from Nuka Lisp in Dart
-///  (https://github.com/nukata/lisp-in-dart) except for bignum.
-///  Its sole numeric type is <c>double</c> in C#.
+///  (https://github.com/nukata/lisp-in-dart).
 ///  It is named after ex-Nukata Town in Japan.
 /// </remarks>
 public static class NukataLisp {
@@ -430,45 +430,59 @@ public static class NukataLisp {
             Def("length", 1, a => {
                     dynamic x = a[0];
                     if (x == null)
-                        return 0.0;
-                    return (double) x.Length;
+                        return 0;
+                    return x.Length;
                 });
             Def("stringp", 1, a => (a[0] is string) ? TSym : null);
-            Def("numberp", 1, a => (a[0] is double) ? TSym : null);
-            Def("eql", 2, a => ((a[0] == null) ? ((a[1] == null) ?
-                                                  TSym : null) :
-                                a[0].Equals(a[1]) ? TSym : null));
-            Def("<", 2, a => ((double) a[0] < (double) a[1]) ? TSym : null);
-            Def("%", 2, a => (double) a[0] % (double) a[1]);
+
+            Def("numberp", 1, a => (Arith.IsNumber(a[0])) ? TSym : null);
+            Def("eql", 2, a => {
+                    var x = a[0];
+                    var y = a[1];
+                    if (x == null)
+                        return (y == null) ? TSym : null;
+                    else if (x.Equals(y))
+                        return TSym;
+                    else if (Arith.IsNumber(x) && Arith.IsNumber(y))
+                        return (Arith.Compare(x, y) == 0) ? TSym : null;
+                    else
+                        return null;
+                });
+            Def("<", 2, a => (Arith.Compare(a[0], a[1]) < 0) ? TSym : null);
+
+            Def("%", 2, a => Arith.Remainder(a[0], a[1]));
             Def("mod", 2, a => {
-                    var x = (double) a[0];
-                    var y = (double) a[1];
-                    if ((x < 0 && y > 0) || (x > 0 && y < 0))
-                        return x % y + y;
-                    return x % y;
+                    var x = a[0];
+                    var y = a[1];
+                    int xs = Arith.Compare(x, 0);
+                    int ys = Arith.Compare(y, 0);
+                    var q = Arith.Remainder(x, y);
+                    if ((xs < 0 && ys > 0) || (xs > 0 && ys < 0))
+                        return Arith.Add(q, y);
+                    return q;
                 });
 
-            Def("+", -1, a => FoldL(0.0, (Cell) a[0],
-                                    (i, j) => i + (double) j));
-            Def("*", -1, a => FoldL(1.0, (Cell) a[0],
-                                    (i, j) => i * (double) j));
+            Def("+", -1, a => FoldL((object) 0, (Cell) a[0],
+                                    (i, j) => Arith.Add(i, j)));
+            Def("*", -1, a => FoldL((object) 1, (Cell) a[0],
+                                    (i, j) => Arith.Multiply(i, j)));
             Def("-", -2, a => {
-                    var x = (double) a[0];
+                    var x = a[0];
                     var y = (Cell) a[1];
                     if (y == null)
-                        return -x;
-                    return FoldL(x, y, (i, j) => i - (double) j);
+                        return Arith.Subtract(0, x);
+                    return FoldL(x, y, (i, j) => Arith.Subtract(i, j));
                 });
-            Def("/", -3, a => FoldL((double) a[0] / (double) a[1],
+            Def("/", -3, a => FoldL(Arith.RoundedQuotient(a[0], a[1]),
                                     (Cell) a[2],
-                                    (i, j) => i / (double) j));
+                                    (i, j) => Arith.RoundedQuotient(i, j)));
             Def("truncate", -2, a => {
-                    var x = (double) a[0];
+                    var x = a[0];
                     var y = (Cell) a[1];
                     if (y == null)
-                        return Math.Truncate(x);
+                        return Arith.Quotient(x, 1);
                     else if (y.Cdr == null)
-                        return Math.Truncate(x / (double) y.Car);
+                        return Arith.Quotient(x, y.Car);
                     else
                         throw new ArgumentException
                             ("one or two arguments expected");
@@ -485,10 +499,10 @@ public static class NukataLisp {
                 });
 
             var gensymCounterSym = Sym.New("*gensym-counter*");
-            Globals[gensymCounterSym] = 1.0;
+            Globals[gensymCounterSym] = 1;
             Def("gensym", 0, a => {
-                    double x = (double) Globals[gensymCounterSym];
-                    Globals[gensymCounterSym] = x + 1.0;
+                    int x = (int) Globals[gensymCounterSym];
+                    Globals[gensymCounterSym] = x + 1;
                     return new Sym($"G{(int) x}");
                 });
 
@@ -500,7 +514,7 @@ public static class NukataLisp {
                 Eval(new Cell(a[0], MapCar((Cell) a[1], QqQuote)), null));
 
             Def("exit", 1, a => {
-                    Environment.Exit((int) ((double) a[0]));
+                    Environment.Exit((int) a[0]);
                     return null;
                 });
             Def("dump", 0, a =>
@@ -1031,7 +1045,7 @@ public static class NukataLisp {
                 Token = t;
                 return;
             }
-            if (Double.TryParse(t, out double num))
+            if (Arith.TryParse(t, out object num))
                 Token = num;
             else if (t == "nil")
                 Token = null;
@@ -1120,9 +1134,13 @@ public static class NukataLisp {
             return bf.ToString();
         case Sym sym:
             return (sym.IsInterned) ? sym.Name : $"#:{x}";
-        default:
-            return x.ToString();
+        case double d:          // 123.0 => "123.0"
+            string lds = ((long) d).ToString();
+            if (lds == d.ToString())
+                return lds + ".0";
+            break;
         }
+        return x.ToString();
     }
 
     // Make a string representation of list omitting its "(" and ")".
@@ -1389,26 +1407,3 @@ public static class NukataLisp {
              `(,(caddr spec))))))
 ";
 }
-
-/*
-  Copyright (c) 2017 OKI Software Co., Ltd.
-  Copyright (c) 2018 SUZUKI Hisao
-
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
-*/
