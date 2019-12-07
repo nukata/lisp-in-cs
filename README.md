@@ -41,12 +41,12 @@ $ mono lisp.exe
 $ 
 ```
 
-With [.NET Core](https://github.com/dotnet/core) 3.0:
+With [.NET Core](https://github.com/dotnet/core) 3.1:
 
 ```
 $ dotnet build -c Release
 ....
-$ dotnet bin/Release/netcoreapp3.0/lisp.dll
+$ dotnet bin/Release/netcoreapp3.1/lisp.dll
 > (+ 5 6)
 11
 > (exit 0)
