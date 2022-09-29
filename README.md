@@ -29,7 +29,7 @@ See [IMPLEMENTATION-NOTES.md](IMPLEMENTATION-NOTES.md) for the implementation.
 
 ## How to run
 
-With [Mono](https://www.mono-project.com) 6.4.0:
+With [Mono](https://www.mono-project.com) 6.12.0:
 
 ```
 $ csc -o -r:System.Numerics.dll lisp.cs arith.cs
@@ -41,12 +41,12 @@ $ mono lisp.exe
 $ 
 ```
 
-With [.NET Core](https://github.com/dotnet/core) 3.1:
+With [.NET](https://github.com/dotnet/core) 6.0:
 
 ```
 $ dotnet build -c Release
 ....
-$ dotnet bin/Release/netcoreapp3.1/lisp.dll
+$ ./bin/Release/net6.0/lisp
 > (+ 5 6)
 11
 > (exit 0)
